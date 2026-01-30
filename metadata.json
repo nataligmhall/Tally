@@ -1,0 +1,7 @@
+{
+  "name": "Mindful Path: Tally Tracker",
+  "description": "A supportive, non-shaming mobile-first app for tracking and reducing cannabis use through a simple visual tally system.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
