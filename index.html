@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +21,6 @@
     <script type="importmap">
     {
       "imports": {
-        "@google/genai": "https://esm.sh/@google/genai",
         "date-fns": "https://esm.sh/date-fns"
       }
     }
@@ -51,7 +49,6 @@
     </nav>
 
     <script type="module">
-        import { GoogleGenAI } from "@google/genai";
         import { format, subDays, isSameDay } from "date-fns";
 
         // --- Core Application State ---
@@ -62,64 +59,39 @@
             negativeSymbol: "💨"
         };
 
+        const PHRASES = [
+            "Master your impulses, or they will master you.",
+            "Your habits are the architecture of your life. Build something great.",
+            "The version of you that you want to become is waiting on the other side of consistency.",
+            "Change is hard at first, messy in the middle, and gorgeous at the end.",
+            "Decide who you want to be, then act like that person.",
+            "Strength isn't the absence of struggle; it's the presence of resolve.",
+            "Win the moment, win the day.",
+            "You are stronger than a feeling.",
+            "One choice at a time. One breath at a time. One day at a time.",
+            "The best time to change was years ago. The second best time is right now.",
+            "Action is the antidote to anxiety.",
+            "Small disciplines lead to massive results.",
+            "Be the boss of your brain.",
+            "You are the architect of your own freedom.",
+            "Everything you want is on the other side of fear.",
+            "Your life is the sum of your choices. Choose well today.",
+            "Make yourself proud."
+        ];
+
         let records = JSON.parse(localStorage.getItem('mindful_records') || '[]');
         let settings = JSON.parse(localStorage.getItem('mindful_settings') || JSON.stringify(DEFAULT_SETTINGS));
         let currentTab = 'track';
-        let insightMessage = "Reflecting on your journey...";
-        let isInsightLoading = false;
+        let insightMessage = PHRASES[Math.floor(Math.random() * PHRASES.length)];
 
         const persist = () => {
             localStorage.setItem('mindful_records', JSON.stringify(records));
             localStorage.setItem('mindful_settings', JSON.stringify(settings));
         };
 
-        // --- Gemini AI Interaction ---
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-        async function refreshInsight() {
-            if (records.length === 0) {
-                insightMessage = "Welcome to your Mindful Path. Start your journey by recording your first day.";
-                renderUI();
-                return;
-            }
-            
-            isInsightLoading = true;
-            renderUI();
-
-            const recentHistory = records.slice(-14).map(r => ({ type: r.type, date: r.date }));
-            const prompt = `
-                User Name: ${settings.userName}
-                Recent History: ${JSON.stringify(recentHistory)}
-                Intention: ${settings.dailyGoal}
-                
-                The user is tracking cannabis use for self-improvement. 
-                "positive" means they reached their goal for that day. 
-                "negative" means they used cannabis when they perhaps didn't want to.
-                
-                Provide ONE short, warm, supportive sentence (max 20 words). 
-                Focus on resilience, mindfulness patterns, or self-compassion. 
-                NEVER use shaming language. Do not use words like "failure" or "relapse".
-            `;
-
-            try {
-                const response = await ai.models.generateContent({
-                    model: 'gemini-3-flash-preview',
-                    contents: prompt,
-                    config: {
-                        temperature: 0.7,
-                        topP: 0.8,
-                    },
-                });
-                
-                insightMessage = response.text || "You are making progress just by being here and staying aware.";
-            } catch (err) {
-                console.error("Gemini AI error:", err);
-                insightMessage = "Keep moving forward at your own pace. Every small moment of awareness counts.";
-            } finally {
-                isInsightLoading = false;
-                renderUI();
-            }
-        }
+        const rotateInsight = () => {
+            insightMessage = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+        };
 
         // --- UI Rendering Engine ---
         const root = document.getElementById('app');
@@ -165,7 +137,7 @@
                     <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Mindful Insight</span>
                 </div>
                 <p class="text-slate-700 italic text-sm leading-relaxed relative z-10">
-                    ${isInsightLoading ? '<span class="animate-pulse opacity-50">Tuning in to your path...</span>' : insightMessage}
+                    ${insightMessage}
                 </p>
                 <div class="absolute -right-4 -bottom-4 opacity-5">
                     <i data-lucide="sparkles" class="w-24 h-24 text-indigo-900"></i>
@@ -373,8 +345,8 @@
 
         window.switchTab = (tab) => {
             currentTab = tab;
+            if (tab === 'track') rotateInsight();
             renderUI();
-            if (tab === 'track') refreshInsight();
         };
 
         window.logDay = (type) => {
@@ -391,7 +363,6 @@
             else records.push(entry);
             
             persist();
-            refreshInsight();
             renderUI();
         };
 
@@ -402,7 +373,6 @@
         };
 
         renderUI();
-        refreshInsight();
     </script>
 </body>
 </html>
